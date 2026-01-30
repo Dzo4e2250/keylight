@@ -4,67 +4,81 @@ A beautiful GTK3 application for controlling RGB keyboard backlights on Clevo/Gi
 
 ![KeyLight](assets/keylight.svg)
 
+## Why I Built This
+
+I own a Gigabyte G5 GD laptop and wanted to control my RGB keyboard backlight on Linux. I searched everywhere - forums, GitHub, Reddit - but couldn't find a single working solution for my laptop. Every tool I tried either didn't support my hardware or required Windows-only software like Gigabyte Control Center.
+
+After hours of frustration, I decided to build my own application from scratch. I reverse-engineered how the keyboard backlight works, found the right kernel drivers, and created a simple GUI that just works.
+
+**I'm sharing this so others don't have to waste hours like I did.** The installer automatically downloads and sets up all the required drivers - just run it and you're done.
+
+## Supported Hardware
+
+- **Gigabyte**: G5, G7, Aero series
+- **Clevo**: Most models with RGB keyboards
+- **Tongfang**: Various rebranded laptops
+- Other laptops using the `tuxedo_keyboard` driver
+
 ## Features
 
 - **Color Picker**: Choose any RGB color for your keyboard backlight
 - **Preset Colors**: Quick access to 10 pre-configured colors
 - **Brightness Control**: Smooth slider to adjust brightness from 0-100%
+- **Animated Effects**: Rainbow, Breathing, Wave, Strobe, Candle, Police lights
+- **Speed Control**: Adjust animation speed
 - **System Tray**: Quick access to controls without opening the main window
 - **Keyboard Shortcuts**: Bind keys to cycle colors or toggle backlight
 - **Settings Persistence**: Remembers your preferences across reboots
 - **CLI Support**: Control via command line for scripting
-
-## Requirements
-
-- Linux with GTK 3.0+
-- Python 3.8+
-- Clevo/Gigabyte laptop with RGB keyboard
-- `tuxedo_keyboard` kernel module
+- **Auto Driver Install**: The installer handles everything automatically
 
 ## Installation
 
-### Quick Install
+### Quick Install (Recommended)
 
 ```bash
+git clone https://github.com/Dzo4e2250/keylight.git
+cd keylight
 ./install.sh
 ```
 
-This will:
-1. Check/load the tuxedo_keyboard module
-2. Set up permissions for LED control
-3. Install desktop entry
-4. Create CLI shortcuts
+This will automatically:
+1. Install all required dependencies
+2. Download and build the kernel driver
+3. Set up permissions (no root password needed after install)
+4. Add KeyLight to your application menu
+5. Create CLI shortcuts
 
-### Manual Installation
+### Install from .deb (Debian/Ubuntu)
 
-1. **Install the kernel module:**
-   ```bash
-   cd /tmp
-   git clone https://github.com/wessel-novacustom/clevo-keyboard.git
-   cd clevo-keyboard
-   sudo make && sudo make install
-   sudo depmod -a
-   sudo modprobe tuxedo_keyboard
-   ```
-
-2. **Make it load on boot:**
-   ```bash
-   echo "tuxedo_keyboard" | sudo tee /etc/modules-load.d/tuxedo_keyboard.conf
-   ```
-
-3. **Run KeyLight:**
-   ```bash
-   python3 keylight.py
-   ```
+```bash
+./build-deb.sh
+sudo dpkg -i keylight_1.0.0_all.deb
+sudo apt-get install -f
+```
 
 ## Usage
 
 ### GUI Application
 
-Launch from application menu or run:
+Launch from your application menu (search for "KeyLight") or run:
 ```bash
 python3 keylight.py
 ```
+
+### Effects
+
+KeyLight includes animated lighting effects:
+
+| Effect | Description |
+|--------|-------------|
+| Static | Solid color (no animation) |
+| Rainbow | Cycles through all colors |
+| Breathing | Fades in and out |
+| Wave | Smooth transitions between colors |
+| Strobe | Fast flashing |
+| Candle | Warm flickering effect |
+| Police | Red/blue emergency lights |
 
 ### Command Line
 
@@ -84,18 +98,18 @@ keylight --brightness 128
 
 ### Keyboard Shortcuts
 
-After installation, set up shortcuts in your desktop environment:
+Set up a shortcut to cycle colors with a key combo:
 
 **GNOME/Ubuntu:**
 1. Settings → Keyboard → Keyboard Shortcuts
 2. Add Custom Shortcut
-3. Command: `~/.local/bin/keylight-cycle`
+3. Command: `keylight-cycle`
 4. Set key combination (e.g., Super+Space)
 
 **KDE:**
 1. System Settings → Shortcuts → Custom Shortcuts
 2. Add new Global Shortcut
-3. Command: `~/.local/bin/keylight-cycle`
+3. Command: `keylight-cycle`
 
 ## Configuration
 
@@ -105,29 +119,10 @@ Configuration is stored in `~/.config/keylight/config.json`:
 {
   "brightness": 255,
   "current_color": "#FFFFFF",
-  "favorite_colors": ["#FFFFFF", "#FF0000", ...],
+  "favorite_colors": ["#FFFFFF", "#FF0000", "#00FF00", ...],
   "cycle_colors": ["#FFFFFF", "#FF0000", "#00FF00", "#0000FF"],
   "restore_on_startup": true
 }
-```
-
-## File Structure
-
-```
-KEYLIGHT/
-├── keylight.py          # Main entry point
-├── keylight/
-│   ├── __init__.py
-│   ├── controller.py    # Hardware interface
-│   ├── config.py        # Settings management
-│   ├── gui.py           # GTK3 user interface
-│   ├── tray.py          # System tray icon
-│   └── shortcuts.py     # Keyboard shortcut handling
-├── assets/
-│   └── keylight.svg     # Application icon
-├── keylight.desktop     # Desktop entry
-├── install.sh           # Installer script
-└── README.md
 ```
 
 ## Troubleshooting
@@ -159,6 +154,29 @@ sudo usermod -aG video $USER
 
 Some laptops only support certain colors. Try the preset colors first.
 
+## File Structure
+
+```
+keylight/
+├── keylight.py          # Main entry point
+├── keylight/
+│   ├── controller.py    # Hardware interface
+│   ├── config.py        # Settings management
+│   ├── effects.py       # Animated lighting effects
+│   ├── gui.py           # GTK3 user interface
+│   ├── tray.py          # System tray icon
+│   └── shortcuts.py     # Keyboard shortcut handling
+├── assets/
+│   └── keylight.svg     # Application icon
+├── install.sh           # Auto-installer with driver setup
+├── build-deb.sh         # Debian package builder
+└── snap/                # Snap package files
+```
+
+## Contributing
+
+Found a bug or want to add support for more hardware? Pull requests are welcome!
+
 ## License
 
 MIT License
@@ -167,3 +185,7 @@ MIT License
 
 - [clevo-keyboard](https://github.com/wessel-novacustom/clevo-keyboard) - Kernel module for Clevo laptops
 - GTK3 - User interface toolkit
+
+---
+
+*If this helped you, consider giving it a ⭐ on GitHub!*
