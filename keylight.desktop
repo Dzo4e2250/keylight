@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=KeyLight
+Comment=Keyboard Backlight Controller
+GenericName=Keyboard Backlight
+Exec=python3 /home/ristov/Applications/06-Personal-Portfolio/KEYLIGHT/keylight.py
+Icon=/home/ristov/Applications/06-Personal-Portfolio/KEYLIGHT/assets/keylight.svg
+Terminal=false
+Type=Application
+Categories=Utility;Settings;HardwareSettings;
+Keywords=keyboard;backlight;rgb;led;color;
+StartupNotify=true
+StartupWMClass=keylight

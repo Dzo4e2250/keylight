@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KeyLight
+Comment=Keyboard Backlight Controller
+GenericName=Keyboard Backlight
+Exec=keylight
+Icon=${SNAP}/usr/share/icons/hicolor/scalable/apps/keylight.svg
+Terminal=false
+Type=Application
+Categories=Utility;Settings;HardwareSettings;
+Keywords=keyboard;backlight;rgb;led;color;
+StartupNotify=true

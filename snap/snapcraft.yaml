@@ -1,0 +1,86 @@
+name: keylight
+version: '1.0.0'
+summary: Keyboard Backlight Controller for Linux
+description: |
+  KeyLight is a GTK3 application for controlling RGB keyboard
+  backlights on Clevo/Gigabyte laptops running Linux.
+
+  Features:
+  - Color picker with 10+ preset colors
+  - Brightness slider control
+  - System tray integration
+  - Keyboard shortcuts support
+  - CLI interface for scripting
+  - Settings persistence
+
+  Supported hardware:
+  - Gigabyte G5, G7, Aero series
+  - Clevo-based laptops
+  - Tongfang-based laptops
+
+  Note: Requires the tuxedo_keyboard kernel module to be installed
+  on the host system for keyboard backlight access.
+
+base: core22
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on: amd64
+
+apps:
+  keylight:
+    command: usr/bin/keylight
+    desktop: usr/share/applications/keylight.desktop
+    extensions: [gnome]
+    plugs:
+      - home
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - hardware-observe
+      - raw-usb
+
+  cycle:
+    command: usr/bin/keylight-cycle
+    plugs:
+      - hardware-observe
+
+  toggle:
+    command: usr/bin/keylight-toggle
+    plugs:
+      - hardware-observe
+
+parts:
+  keylight:
+    plugin: dump
+    source: .
+    organize:
+      keylight.py: usr/share/keylight/keylight.py
+      keylight/*: usr/share/keylight/keylight/
+      assets/*: usr/share/icons/hicolor/scalable/apps/
+    stage-packages:
+      - python3
+      - python3-gi
+      - python3-gi-cairo
+      - gir1.2-gtk-3.0
+      - gir1.2-ayatanaappindicator3-0.1
+
+  launchers:
+    plugin: dump
+    source: snap/local/
+    organize:
+      keylight: usr/bin/keylight
+      keylight-cycle: usr/bin/keylight-cycle
+      keylight-toggle: usr/bin/keylight-toggle
+
+  desktop-entry:
+    plugin: dump
+    source: snap/local/
+    organize:
+      keylight.desktop: usr/share/applications/keylight.desktop
+
+layout:
+  /usr/share/keylight:
+    bind: $SNAP/usr/share/keylight
