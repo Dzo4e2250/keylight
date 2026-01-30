@@ -7,6 +7,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALL_DIR="$HOME/.local/share/keylight"
 APP_NAME="keylight"
 CLEVO_REPO="https://github.com/wessel-novacustom/clevo-keyboard.git"
 
@@ -42,7 +43,7 @@ print_error() {
     echo -e "    ${RED}✗${NC} $1"
 }
 
-TOTAL_STEPS=7
+TOTAL_STEPS=8
 
 print_header
 
@@ -174,64 +175,87 @@ sudo chgrp video /sys/class/leds/rgb:kbd_backlight/multi_intensity 2>/dev/null |
 sudo chmod g+w /sys/class/leds/rgb:kbd_backlight/multi_intensity 2>/dev/null || true
 print_ok "Permissions configured"
 
-# Step 5: Install desktop entry
-print_step 5 "Installing application..."
+# Step 5: Copy application files to install directory
+print_step 5 "Installing application files..."
+
+# If we're not already in the install directory, copy files there
+if [[ "$SCRIPT_DIR" != "$INSTALL_DIR" ]]; then
+    mkdir -p "$INSTALL_DIR"
+    cp -r "$SCRIPT_DIR"/* "$INSTALL_DIR/"
+    chmod +x "$INSTALL_DIR/keylight.py"
+    chmod +x "$INSTALL_DIR/install.sh"
+    chmod +x "$INSTALL_DIR/uninstall.sh" 2>/dev/null || true
+fi
+print_ok "Application files installed to $INSTALL_DIR"
+
+# Step 6: Install desktop entry and icon
+print_step 6 "Creating desktop entry..."
 
 mkdir -p ~/.local/share/applications
 mkdir -p ~/.local/share/icons/hicolor/scalable/apps
 
-# Update desktop file with correct path
-sed "s|Exec=.*|Exec=python3 $SCRIPT_DIR/keylight.py|g; s|Icon=.*|Icon=keylight|g" \
-    "$SCRIPT_DIR/keylight.desktop" > ~/.local/share/applications/keylight.desktop
-chmod +x ~/.local/share/applications/keylight.desktop
+# Desktop entry
+cat > ~/.local/share/applications/keylight.desktop << EOF
+[Desktop Entry]
+Name=KeyLight
+Comment=Keyboard Backlight Controller
+GenericName=Keyboard Backlight
+Exec=$INSTALL_DIR/keylight.py
+Icon=keylight
+Terminal=false
+Type=Application
+Categories=Utility;Settings;HardwareSettings;
+Keywords=keyboard;backlight;rgb;led;color;
+StartupNotify=true
+EOF
 
 # Install icon
-cp "$SCRIPT_DIR/assets/keylight.svg" ~/.local/share/icons/hicolor/scalable/apps/keylight.svg
+cp "$INSTALL_DIR/assets/keylight.svg" ~/.local/share/icons/hicolor/scalable/apps/keylight.svg
 
 update-desktop-database ~/.local/share/applications 2>/dev/null || true
 gtk-update-icon-cache ~/.local/share/icons/hicolor 2>/dev/null || true
 
 print_ok "Desktop entry installed"
 
-# Step 6: Create CLI commands
-print_step 6 "Creating CLI commands..."
+# Step 7: Create CLI commands
+print_step 7 "Creating CLI commands..."
 
 mkdir -p ~/.local/bin
 
 # Main launcher
 cat > ~/.local/bin/keylight << EOF
 #!/bin/bash
-python3 "$SCRIPT_DIR/keylight.py" "\$@"
+python3 "$INSTALL_DIR/keylight.py" "\$@"
 EOF
 chmod +x ~/.local/bin/keylight
 
 # Cycle colors command
 cat > ~/.local/bin/keylight-cycle << EOF
 #!/bin/bash
-python3 "$SCRIPT_DIR/keylight.py" --cycle
+python3 "$INSTALL_DIR/keylight.py" --cycle
 EOF
 chmod +x ~/.local/bin/keylight-cycle
 
 # Toggle command
 cat > ~/.local/bin/keylight-toggle << EOF
 #!/bin/bash
-python3 "$SCRIPT_DIR/keylight.py" --toggle
+python3 "$INSTALL_DIR/keylight.py" --toggle
 EOF
 chmod +x ~/.local/bin/keylight-toggle
 
-# Add to PATH if needed
+# Check if ~/.local/bin is in PATH
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-    print_warn "Add ~/.local/bin to PATH in your .bashrc or .zshrc"
+    print_warn "Add ~/.local/bin to PATH in your .bashrc or .zshrc:"
+    echo "         export PATH=\"\$HOME/.local/bin:\$PATH\""
+else
+    print_ok "CLI commands created"
 fi
 
-print_ok "CLI commands created"
-
-# Step 7: Verify installation
-print_step 7 "Verifying installation..."
+# Step 8: Verify installation
+print_step 8 "Verifying installation..."
 
 if [[ -f /sys/class/leds/rgb:kbd_backlight/brightness ]]; then
     CURRENT_BRIGHTNESS=$(cat /sys/class/leds/rgb:kbd_backlight/brightness)
-    CURRENT_COLOR=$(cat /sys/class/leds/rgb:kbd_backlight/multi_intensity)
     print_ok "Keyboard backlight detected (brightness: $CURRENT_BRIGHTNESS)"
 else
     print_error "Keyboard backlight not found"
@@ -259,6 +283,9 @@ echo "Keyboard shortcuts:"
 echo "  Settings → Keyboard → Shortcuts → Add custom:"
 echo "    Command: keylight-cycle"
 echo "    Key: Super+Space (or your preference)"
+echo
+echo "To uninstall:"
+echo "  $INSTALL_DIR/uninstall.sh"
 echo
 if ! groups | grep -q video; then
     echo -e "${YELLOW}NOTE: Please log out and back in for permissions to take effect.${NC}"

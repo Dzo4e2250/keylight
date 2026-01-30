@@ -34,27 +34,42 @@ After hours of frustration, I decided to build my own application from scratch. 
 
 ## Installation
 
-### Quick Install (Recommended)
+### One-Line Install (Recommended)
+
+Copy and paste this into your terminal:
+
+```bash
+git clone https://github.com/Dzo4e2250/keylight.git ~/.local/share/keylight && ~/.local/share/keylight/install.sh
+```
+
+That's it! After installation:
+- **KeyLight** appears in your application menu - just click to launch
+- Run `keylight` from any terminal
+- No need to navigate to folders or run python commands
+
+### What the installer does
+
+1. Installs all required dependencies (GTK3, Python packages)
+2. Downloads and builds the kernel driver automatically
+3. Sets up permissions (no root password needed after install)
+4. Adds KeyLight to your application menu with icon
+5. Creates CLI commands: `keylight`, `keylight-cycle`, `keylight-toggle`
+6. Configures everything to persist after reboot
+
+### Alternative: Install from .deb (Debian/Ubuntu)
 
 ```bash
 git clone https://github.com/Dzo4e2250/keylight.git
 cd keylight
-./install.sh
-```
-
-This will automatically:
-1. Install all required dependencies
-2. Download and build the kernel driver
-3. Set up permissions (no root password needed after install)
-4. Add KeyLight to your application menu
-5. Create CLI shortcuts
-
-### Install from .deb (Debian/Ubuntu)
-
-```bash
 ./build-deb.sh
 sudo dpkg -i keylight_1.0.0_all.deb
 sudo apt-get install -f
+```
+
+### Uninstall
+
+```bash
+~/.local/share/keylight/uninstall.sh
 ```
 
 ## Usage
